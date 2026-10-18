@@ -25,7 +25,7 @@ sealed interface HeadsetScreen {
     /** Headset 6: the door vote is running. */
     data object LookingForDoor : HeadsetScreen
 
-    /** Headset 4 (Read) and 5 (Describe): the VLM's answer, spoken and shown. */
+    /** Headset 4 (Read) and 5 (Describe): the VLM's answer, spoken and shown; on the phone also the door glance (ADR-0006). */
     data class Answer(val mode: Mode, val text: String) : HeadsetScreen
 
     /**
@@ -104,7 +104,7 @@ object HeadsetScreens {
         if (text != null && input.transcriptKind != TranscriptKind.ANSWER) {
             return HeadsetScreen.Place(text, mapCredit = input.transcriptKind == TranscriptKind.WHERE_AM_I)
         }
-        if (text != null && (input.mode == Mode.TEXT_READER || input.mode == Mode.AUDIO_DESCRIPTION)) {
+        if (text != null && input.mode != null) { // Read, Describe, or the phone's door glance (ADR-0006)
             return if (isNoText(text, input.noTextSentinel)) HeadsetScreen.NoText else HeadsetScreen.Answer(input.mode, text)
         }
         return HeadsetScreen.Ready

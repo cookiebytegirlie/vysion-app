@@ -671,12 +671,11 @@ class ModeController(
         markActionStarted(event) // NFR: the state is already CAPTURING; the announcement is not latency
         endDoorWatch() // a new search replaces the old one
         announceMode(Mode.NAVIGATION)
-        if (!ensureNavigationRunning()) {
-            _state.value = ModeState.SPEAKING
-            say(phrasebook.navigationUnavailable) // ADR-0006
-            return
-        }
-        val wasRunning = pauseNavigation()
+        showTranscript(null) // a new search replaces the old words (an arrival detail, an earlier glance)
+        // ADR-0006: on the phone there is no depth, no planes and no anchor, so nothing can guide; the search still
+        // runs and ends in one honest glance (which third of the view the door is in) instead of guidance.
+        val canGuide = ensureNavigationRunning()
+        val wasRunning = canGuide && pauseNavigation()
         var first: Bitmap? = null
         var second: Bitmap? = null
         try {
@@ -697,6 +696,10 @@ class ModeController(
                 )
             }
             _state.value = ModeState.SPEAKING
+            if (!canGuide) {
+                glanceAtDoor(bearing)
+                return
+            }
             val anchor = bearing?.let { anchors.placeFromBearing(it) }
             if (anchor == null) {
                 watchForDoor() // nothing said: keep looking, speak only when a door is found
@@ -716,6 +719,27 @@ class ModeController(
                 if (wasRunning) navigation.resume()
             }
         }
+    }
+
+    /**
+     * The phone's answer to "find the door" (ADR-0006, designs Phone v6 N1-N2): the door's third of the view is outlined
+     * and said, with no distance, because none is measured there; or "no door, turn slowly" (FR-N3, RK-6 agreement).
+     */
+    private suspend fun glanceAtDoor(bearing: HorizontalBearing?) {
+        if (bearing == null || bearing == HorizontalBearing.NONE) {
+            overlay.highlightDoor(null)
+            say(phrasebook.doorNotFound)
+            return
+        }
+        val clock = when (bearing) {
+            HorizontalBearing.LEFT -> 11
+            HorizontalBearing.RIGHT -> 1
+            else -> 12
+        }
+        overlay.highlightDoor(DoorHighlight.boxFor(clock, inView = true))
+        val words = phrasebook.doorSeen(bearing)
+        showTranscript(words.ifBlank { null })
+        say(words)
     }
 
     /** R3 emits DoorBearing every 3 s, spoken in [onCue] with the spatial ping: that is how the wearer learns of it. */

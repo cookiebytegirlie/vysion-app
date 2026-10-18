@@ -161,7 +161,11 @@ private fun ScreenContent(shell: ShellState, screen: HeadsetScreen, type: Vysion
                 Footnote(stringResource(R.string.status_looking_foot), type)
             }
             is HeadsetScreen.Answer -> {
-                val title = if (screen.mode == Mode.TEXT_READER) R.string.status_reading else R.string.status_describing
+                val title = when (screen.mode) {
+                    Mode.TEXT_READER -> R.string.status_reading
+                    Mode.AUDIO_DESCRIPTION -> R.string.status_describing
+                    Mode.NAVIGATION -> R.string.world_door
+                }
                 Header(Badge.ORB, stringResource(title), null, type)
                 AnswerText(text = screen.text, spoken = shell.spokenRange(screen.text), type = type)
             }

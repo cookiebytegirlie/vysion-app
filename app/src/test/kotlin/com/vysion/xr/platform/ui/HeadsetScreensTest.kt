@@ -23,6 +23,12 @@ class HeadsetScreensTest {
     }
 
     @Test
+    fun `a navigation transcript is an answer too (the phone's door glance, ADR-0006)`() {
+        val input = idle.copy(mode = Mode.NAVIGATION, transcript = "Door on your left.")
+        assertEquals(HeadsetScreen.Answer(Mode.NAVIGATION, "Door on your left."), HeadsetScreens.reduce(input))
+    }
+
+    @Test
     fun `listening wins over every other state`() {
         val input = idle.copy(listening = ListeningState.LISTENING, state = ModeState.INFERRING)
         assertEquals(HeadsetScreen.Listening, HeadsetScreens.reduce(input))

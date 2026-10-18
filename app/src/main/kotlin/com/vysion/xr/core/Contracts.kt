@@ -606,6 +606,12 @@ interface ModePhrasebook {
      */
     fun whereAmI(result: WhereAmI): String = ""
 
+    /**
+     * ADR-0006, FR-N3 on a device with no depth or anchors (the phone): "find the door" answers with one honest glance,
+     * which third of the view the door is in, instead of guidance. Default blank (= not wired, skipped).
+     */
+    fun doorSeen(bearing: HorizontalBearing): String = ""
+
     /** FR-G3: "<mode> mode" on every mode change. */
     fun modeAnnounced(mode: Mode): String
 

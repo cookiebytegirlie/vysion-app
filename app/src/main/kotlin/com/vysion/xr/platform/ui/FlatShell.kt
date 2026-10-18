@@ -551,11 +551,18 @@ private fun Sheet(shell: ShellState, selected: Mode, onRun: () -> Unit, inject: 
                 Sub(stringResource(R.string.phone_looking_body))
             }
             shown is HeadsetScreen.Answer -> {
-                val kicker = if (shown.mode == Mode.TEXT_READER) R.string.status_reading else R.string.status_describing
-                SheetCard(Accent.yellow, stringResource(kicker)) {
+                val kicker = when (shown.mode) {
+                    Mode.TEXT_READER -> R.string.status_reading
+                    Mode.AUDIO_DESCRIPTION -> R.string.status_describing
+                    Mode.NAVIGATION -> R.string.world_door // the phone's door glance (ADR-0006)
+                }
+                SheetCard(if (shown.mode == Mode.NAVIGATION) Accent.cyan else Accent.yellow, stringResource(kicker)) {
                     SheetAnswer(shown.text, shell.spokenRange(shown.text))
                     Pills {
-                        if (shown.mode == Mode.TEXT_READER) {
+                        if (shown.mode == Mode.NAVIGATION) {
+                            SheetPill(stringResource(R.string.action_repeat), VysionIcons.Repeat) { inject(Command.Repeat) }
+                            SheetPill(stringResource(R.string.action_find_another_door), VysionIcons.Door) { inject(Command.FindDoor) }
+                        } else if (shown.mode == Mode.TEXT_READER) {
                             SheetPill(stringResource(R.string.action_repeat), VysionIcons.Repeat) { inject(Command.Repeat) }
                             SheetPill(stringResource(R.string.action_next), VysionIcons.Next) { inject(Command.Next) }
                         } else {

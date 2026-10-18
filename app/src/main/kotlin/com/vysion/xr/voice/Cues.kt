@@ -1,6 +1,7 @@
 package com.vysion.xr.voice
 
 import com.vysion.xr.core.Distances
+import com.vysion.xr.core.HorizontalBearing
 import com.vysion.xr.core.Mode
 import com.vysion.xr.core.NavigationCue
 import com.vysion.xr.core.OnboardingItem
@@ -74,6 +75,9 @@ object Cues {
 
         /** RK-6, verbatim. */
         DOOR_NOT_FOUND,
+        DOOR_SEEN_LEFT,
+        DOOR_SEEN_CENTER,
+        DOOR_SEEN_RIGHT,
 
         /** [NavigationCue.TargetLost]. */
         DOOR_LOST,
@@ -156,6 +160,9 @@ object Cues {
         Key.HOLD_STILL to "Hold still",
         Key.OBSTACLE_AHEAD to "obstacle ahead",
         Key.DOOR_NOT_FOUND to "I can't find a door, turn slowly",
+        Key.DOOR_SEEN_LEFT to "Door on your left.",
+        Key.DOOR_SEEN_CENTER to "Door straight ahead.",
+        Key.DOOR_SEEN_RIGHT to "Door on your right.",
         Key.DOOR_LOST to "I lost the door, turn slowly",
         Key.WALL_AHEAD to "wall ahead",
         Key.FLOOR_ENDS to "floor ends",
@@ -205,6 +212,9 @@ object Cues {
         Key.HOLD_STILL to "Quédate quieto",
         Key.OBSTACLE_AHEAD to "obstáculo adelante",
         Key.DOOR_NOT_FOUND to "No encuentro una puerta, gira despacio",
+        Key.DOOR_SEEN_LEFT to "Puerta a tu izquierda.",
+        Key.DOOR_SEEN_CENTER to "Puerta al frente.",
+        Key.DOOR_SEEN_RIGHT to "Puerta a tu derecha.",
         Key.DOOR_LOST to "Perdí la puerta, gira despacio",
         Key.WALL_AHEAD to "pared adelante",
         Key.FLOOR_ENDS to "el piso termina",
@@ -259,6 +269,14 @@ object Cues {
     fun holdStill(locale: Locale = Speaker.EN_US): String = text(Key.HOLD_STILL, locale)
     fun obstacleAhead(locale: Locale = Speaker.EN_US): String = text(Key.OBSTACLE_AHEAD, locale)
     fun doorNotFound(locale: Locale = Speaker.EN_US): String = text(Key.DOOR_NOT_FOUND, locale)
+
+    /** ADR-0006 (phone): the door's side from one glance, no distance (none is measured there). NONE says "not found". */
+    fun doorSeen(bearing: HorizontalBearing, locale: Locale = Speaker.EN_US): String = when (bearing) {
+        HorizontalBearing.LEFT -> text(Key.DOOR_SEEN_LEFT, locale)
+        HorizontalBearing.CENTER -> text(Key.DOOR_SEEN_CENTER, locale)
+        HorizontalBearing.RIGHT -> text(Key.DOOR_SEEN_RIGHT, locale)
+        HorizontalBearing.NONE -> text(Key.DOOR_NOT_FOUND, locale)
+    }
     fun navigationUnavailableOnThisDevice(locale: Locale = Speaker.EN_US): String =
         text(Key.NAVIGATION_UNAVAILABLE_ON_THIS_DEVICE, locale)
     fun voiceCommandsUnavailable(locale: Locale = Speaker.EN_US): String = text(Key.VOICE_COMMANDS_UNAVAILABLE, locale)
@@ -506,6 +524,7 @@ object CuesPhrasebook : ModePhrasebook {
     override val busy: String get() = Cues.busy(locale())
     override val inferenceFailed: String get() = Cues.inferenceFailed(locale())
     override val doorNotFound: String get() = Cues.doorNotFound(locale())
+    override fun doorSeen(bearing: HorizontalBearing): String = Cues.doorSeen(bearing, locale())
     override val navigationUnavailable: String get() = Cues.navigationUnavailableOnThisDevice(locale())
     override val holdStill: String get() = Cues.holdStill(locale())
     override val permissionExplanation: String get() = Cues.permissionExplanation(locale())

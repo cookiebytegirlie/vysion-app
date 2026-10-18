@@ -670,6 +670,20 @@ class ModeControllerTest {
     }
 
     @Test
+    fun `find the door on a device without navigation says which side the door is on (ADR-0006 glance)`() = controllerTest { f ->
+        f.navigation.available = false
+        startAndSettle(f)
+        f.commands.inject(Command.FindDoor)
+        advanceUntilIdle()
+        // The fixture's engine answers the same side twice (RK-6 agreement): the glance names that side, no distance.
+        val glance = f.speaker.said.lastOrNull { it.startsWith("<cue:doorSeen:") }
+        assertTrue(f.speaker.said.toString(), glance != null && !glance.contains("NONE"))
+        assertFalse(f.speaker.said.contains(TestPhrasebook.navigationUnavailable))
+        assertEquals(glance, f.controller.transcript.value) // shown and spoken are the same words
+        assertEquals(ModeState.IDLE, f.controller.state.value)
+    }
+
+    @Test
     fun `guide me on a device without navigation speaks navigationUnavailable`() = controllerTest { f ->
         f.navigation.available = false
         startAndSettle(f)
@@ -1448,6 +1462,7 @@ private object TestPhrasebook : ModePhrasebook {
     override val readingWholeView = "<cue:readingWholeView>"
     override val doorNotFound = "<cue:doorNotFound>"
     override val navigationUnavailable = "<cue:navigationUnavailable>"
+    override fun doorSeen(bearing: HorizontalBearing) = "<cue:doorSeen:$bearing>"
     override val holdStill = "<cue:holdStill>"
     override val permissionExplanation = "<cue:permissionExplanation>"
     override val permissionDenied = "<cue:permissionDenied>"
